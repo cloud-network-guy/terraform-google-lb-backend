@@ -82,7 +82,7 @@ locals {
       security_policy                 = local.is_application ? var.security_policy : null
       network                         = local.is_application && v.is_regional && !v.is_internal ? local.network : null
       subnet                          = local.is_application && v.is_regional && !v.is_internal ? local.subnet : null
-      balancing_mode                  = local.protocol == "TCP" ? "CONNECTION" : v.is_negs ? null : "UTILIZATION"
+      balancing_mode                  = local.protocol == "TCP" ? "CONNECTION" : "UTILIZATION"
       connection_draining_timeout_sec = coalesce(var.connection_draining_timeout, 300)
       max_connections                 = v.protocol == "TCP" && !v.is_regional ? coalesce(var.max_connections, 8192) : null
       groups = try(coalescelist(v.groups, v.instance_groups,
