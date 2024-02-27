@@ -82,12 +82,12 @@ locals {
       security_policy                 = local.is_application ? var.security_policy : null
       network                         = local.is_application && v.is_regional && !v.is_internal ? local.network : null
       subnet                          = local.is_application && v.is_regional && !v.is_internal ? local.subnet : null
-      balancing_mode                  = local.protocol == "TCP" ? "CONNECTION" : "UTILIZATION"
+      balancing_mode                  = local.is_application ? "UTILIZATION" : "CONNECTION"
       connection_draining_timeout_sec = coalesce(var.connection_draining_timeout, 300)
       max_connections                 = v.protocol == "TCP" && !v.is_regional ? coalesce(var.max_connections, 8192) : null
       groups = try(coalescelist(v.groups, v.instance_groups,
-        [for neg in local.new_gnegs : "projects/${neg.project_id}/global/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
-        [for neg in local.new_rnegs : "projects/${neg.project_id}/regions/${neg.region}/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
+        [for neg in local.new_gnegs : "${local.url_prefix}/${neg.project_id}/global/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
+        [for neg in local.new_rnegs : "${local.url_prefix}/${neg.project_id}/regions/${neg.region}/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
       ), []) # This will result in 'has no backends configured' which is easier to troubleshoot than an ugly error
       health_checks = v.is_negs ? null : flatten([for health_check in v.health_checks :
         [startswith(health_check, local.url_prefix) ? health_check : "${v.hc_prefix}/${health_check}"]
