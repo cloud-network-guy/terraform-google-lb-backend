@@ -29,7 +29,6 @@ locals {
       cdn                     = local.enable_cdn ? var.cdn : null
       custom_request_headers  = null
       custom_response_headers = null
-      max_connections         = var.max_connections
     }
   ] : []
   __backend_services = [for i, v in local._backend_services :
@@ -51,7 +50,7 @@ locals {
     merge(v, {
       is_psc      = length([for neg in local.new_negs : neg if neg.is_psc]) > 0 ? true : false
       port        = try(coalesce(v.port, v.is_application ? (v.protocol == "HTTP" ? 80 : 443) : null), null)
-      protocol    = coalesce(v.protocol, v.is_gneg ? "HTTPS" : "HTTP")
+      protocol    = v.is_gneg ? "HTTPS" : v.protocol
       enable_cdn  = v.is_application && !v.is_regional && !v.is_internal ? local.enable_cdn : false
       type        = local.type
       hc_prefix   = "${local.url_prefix}/${v.project_id}/${v.is_regional ? "regions/${v.region}" : "global"}/healthChecks"
@@ -85,7 +84,7 @@ locals {
       subnet                          = local.is_application && v.is_regional && !v.is_internal ? local.subnet : null
       balancing_mode                  = local.protocol == "TCP" ? "CONNECTION" : v.is_negs ? null : "UTILIZATION"
       connection_draining_timeout_sec = coalesce(var.connection_draining_timeout, 300)
-      max_connections                 = v.protocol == "TCP" && !v.is_regional ? coalesce(v.max_connections, 8192) : null
+      max_connections                 = v.protocol == "TCP" && !v.is_regional ? coalesce(var.max_connections, 8192) : null
       groups = try(coalescelist(v.groups, v.instance_groups,
         [for neg in local.new_gnegs : "projects/${neg.project_id}/global/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
         [for neg in local.new_rnegs : "projects/${neg.project_id}/regions/${neg.region}/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
