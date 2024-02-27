@@ -9,8 +9,8 @@ locals {
   is_regional     = var.region != null ? true : false
   region          = local.is_regional ? var.region : "global"
   port            = coalesce(var.port, 80)
-  protocol        = var.protocol != null ? upper(var.protocol) : "HTTP"
-  is_application  = startswith(local.protocol, "HTTP") ? true : false
+  protocol        = var.protocol != null ? upper(var.protocol) : "TCP"
+  is_application  = startswith(local.protocol, "HTTP") || local.is_negs ? true : false
   network         = coalesce(var.network, "default")
   subnet          = coalesce(var.subnet, "default")
   is_internal     = var.subnet != null ? true : false

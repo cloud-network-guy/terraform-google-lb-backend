@@ -48,8 +48,9 @@ locals {
   ]
   ___backend_services = [for i, v in local.__backend_services :
     merge(v, {
-      is_psc                  = length([for neg in local.new_negs : neg if neg.is_psc]) > 0 ? true : false
+      is_psc      = length([for neg in local.new_negs : neg if neg.is_psc]) > 0 ? true : false
       port        = try(coalesce(v.port, v.is_application ? (v.protocol == "HTTP" ? 80 : 443) : null), null)
+      protocol    = coalesce(v.protocol, v.is_gneg ? "HTTPS" : "HTTP")
       enable_cdn  = v.is_application && !v.is_regional && !v.is_internal ? local.enable_cdn : false
       type        = local.type
       hc_prefix   = "${local.url_prefix}/${v.project_id}/${v.is_regional ? "regions/${v.region}" : "global"}/healthChecks"
@@ -64,7 +65,7 @@ locals {
   ]
   ____backend_services = flatten([for i, v in local.___backend_services :
     [v.is_application ? merge(v, {
-      locality_lb_policy    = v.is_negs? null : upper(coalesce(var.locality_lb_policy, "ROUND_ROBIN"))
+      locality_lb_policy    = v.is_negs ? null : upper(coalesce(var.locality_lb_policy, "ROUND_ROBIN"))
       capacity_scaler       = v.is_rnegs ? null : coalesce(var.capacity_scaler, 1.0)
       max_utilization       = v.is_rnegs ? null : coalesce(var.max_utilization, 0.8)
       max_rate_per_instance = var.max_rate_per_instance

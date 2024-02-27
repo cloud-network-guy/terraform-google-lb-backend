@@ -127,7 +127,7 @@ resource "google_compute_region_network_endpoint_group" "default" {
 
 # Regional Network Endpoints
 resource "google_compute_region_network_endpoint" "default" {
-  for_each                      = { for i, v in local.new_rnegs : v.index_key => v if !v.is_psc}
+  for_each                      = { for i, v in local.new_rnegs : v.index_key => v if !v.is_psc }
   project                       = each.value.project_id
   region_network_endpoint_group = google_compute_region_network_endpoint_group.default[each.value.index_key].id
   fqdn                          = each.value.fqdn
