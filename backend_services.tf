@@ -29,6 +29,7 @@ locals {
       cdn                     = local.enable_cdn ? var.cdn : null
       custom_request_headers  = null
       custom_response_headers = null
+      max_connections         = var.max_connections
     }
   ] : []
   __backend_services = [for i, v in local._backend_services :
