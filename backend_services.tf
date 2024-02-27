@@ -52,7 +52,7 @@ locals {
       port        = try(coalesce(v.port, v.is_application ? (v.protocol == "HTTP" ? 80 : 443) : null), null)
       enable_cdn  = v.is_application && !v.is_regional && !v.is_internal ? local.enable_cdn : false
       type        = local.type
-      hc_prefix   = "${local.url_prefix}/projects/${v.project_id}/${v.is_regional ? "regions/${v.region}" : "global"}/healthChecks"
+      hc_prefix   = "${local.url_prefix}/${v.project_id}/${v.is_regional ? "regions/${v.region}" : "global"}/healthChecks"
       timeout_sec = v.is_rnegs ? null : v.timeout_sec
       instance_groups = length(local.groups) > 0 ? [] : [for ig in v.instance_groups :
         try(coalesce(
