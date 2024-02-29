@@ -6,7 +6,6 @@ locals {
       project_id              = local.project_id
       host_project_id         = local.host_project_id
       name                    = lower(trimspace(coalesce(local.name, "backend-service")))
-      region                  = local.region
       groups                  = var.groups
       health_checks           = var.health_check != null ? [var.health_check] : coalesce(var.health_checks, [])
       session_affinity        = coalesce(var.session_affinity, "NONE")
@@ -18,7 +17,8 @@ locals {
       uses_iap                = local.uses_iap
       is_application          = local.is_application
       is_classic              = local.is_classic
-      is_regional             = local.is_regional
+      is_regional             = local.region != "global" ? true : false
+      region                  = local.is_regional ? local.region : null
       is_internal             = local.is_internal
       negs                    = local.negs
       is_negs                 = length(local.negs) > 0 ? true : false

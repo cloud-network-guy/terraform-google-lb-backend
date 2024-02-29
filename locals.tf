@@ -6,7 +6,7 @@ locals {
   name_prefix     = var.name_prefix != null ? lower(trimspace(var.name_prefix)) : null
   name            = var.name != null ? lower(trimspace(var.name)) : null
   description     = coalesce(var.description, "Managed by Terraform")
-  is_regional     = var.region != null ? true : false
+  is_regional     = var.region != null && var.region != "global" ? true : var.subnet != null ? true : false
   region          = local.is_regional ? var.region : "global"
   port            = coalesce(var.port, 80)
   protocol        = var.protocol != null ? upper(var.protocol) : "TCP"
