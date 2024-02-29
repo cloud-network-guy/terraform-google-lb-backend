@@ -7,7 +7,7 @@ locals {
         project_id      = backend_service.project_id
         host_project_id = backend_service.host_project_id
         name            = lookup(neg, "name", null)
-        region          = try(coalesce(lookup(neg, "region", null), backend_service.region, local.region), null)
+        region          = coalesce(lookup(neg, "region", null), backend_service.region, local.region, "global")
         zone            = lookup(neg, "zone", null)
         network         = lookup(neg, "network", null)
         subnet          = lookup(neg, "subnet", null)
@@ -167,3 +167,4 @@ resource "google_compute_network_endpoint" "default" {
   ip_address             = each.value.ip_address
   port                   = each.value.port
 }
+
