@@ -7,7 +7,7 @@ locals {
         project_id      = backend_service.project_id
         host_project_id = backend_service.host_project_id
         name            = lookup(neg, "name", null)
-        region          = coalesce(lookup(neg, "region", null), backend_service.region, local.region, "global")
+        region          = coalesce(lookup(neg, "region", null), backend_service.region, local.region)
         zone            = lookup(neg, "zone", null)
         network         = lookup(neg, "network", null)
         subnet          = lookup(neg, "subnet", null)
@@ -25,7 +25,7 @@ locals {
       name    = "${local.name_prefix != null ? "${local.name_prefix}-" : ""}${coalesce(v.name, "neg-${v.backend_name}-${i}")}"
       network = coalesce(v.network, local.network)
       subnet  = coalesce(v.subnet, local.subnet)
-      region  = v.zone != null ? null : coalesce(v.region, "global")
+      region  = v.zone != null ? substr(v.zone, 0, length(v.zone) - 2) : coalesce(v.region, "global")
       is_psc  = v.psc_target != null ? true : false
     })
   ]
