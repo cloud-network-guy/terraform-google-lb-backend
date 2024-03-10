@@ -9,6 +9,10 @@ variable "host_project_id" {
   type    = string
   default = null
 }
+variable "type" {
+  type    = string
+  default = null
+}
 variable "region" {
   type    = string
   default = null
@@ -118,37 +122,6 @@ variable "instance_groups" {
   }))
   default = null
 }
-/*
-variable "ineg" {
-  type = object({
-    name       = optional(string)
-    fqdn       = optional(string)
-    ip_address = optional(string)
-    protocol   = optional(string)
-    port       = optional(number)
-  })
-  default = null
-}
-variable "rnegs" {
-  type = list(object({
-    id                    = optional(string)
-    project_id            = optional(string)
-    region                = optional(string)
-    name                  = optional(string)
-    psc_target            = optional(string)
-    network               = optional(string)
-    subnet                = optional(string)
-    cloud_run_service     = optional(string) # Cloud run service name
-    app_engine_service    = optional(string) # App Engine service name
-    container_image       = optional(string) # Default to GCR if not full URL
-    docker_image          = optional(string) # Pull image from docker.io
-    container_port        = optional(number) # Cloud run container port
-    allow_unauthenticated = optional(bool)
-    allowed_members       = optional(list(string))
-  }))
-  default = null
-}
-*/
 variable "negs" {
   type = list(object({
     id                = optional(string)
@@ -157,6 +130,7 @@ variable "negs" {
     type              = optional(string)
     region            = optional(string)
     zone              = optional(string)
+    instance          = optional(string)
     network           = optional(string)
     subnet            = optional(string)
     fqdn              = optional(string)
