@@ -1,5 +1,5 @@
 locals {
-  url_prefix      = "https://www.googleapis.com/compute/v1/projects"
+  url_prefix      = "https://www.googleapis.com/compute/v1"
   create          = coalesce(var.create, true)
   project_id      = var.project_id
   host_project_id = coalesce(var.host_project_id, local.project_id)
@@ -75,7 +75,7 @@ locals {
       port       = try(coalesce(v.port, v.is_application ? (v.protocol == "HTTP" ? 80 : 443) : null), null)
       enable_cdn = v.is_application && !v.is_regional && !v.is_internal ? local.enable_cdn : false
       type       = local.type
-      hc_prefix  = "${local.url_prefix}/${v.project_id}/${v.is_regional ? "regions/${v.region}" : "global"}/healthChecks"
+      hc_prefix  = "${local.url_prefix}/projects/${v.project_id}/${v.is_regional ? "regions/${v.region}" : "global"}/healthChecks"
       instance_groups = length(local.groups) > 0 ? [] : [for ig in v.instance_groups :
         try(coalesce(
           ig.id,
@@ -110,12 +110,12 @@ locals {
       connection_draining_timeout_sec = coalesce(var.connection_draining_timeout, 300)
       max_connections                 = v.protocol == "TCP" && !v.is_regional && !v.is_gnegs ? coalesce(var.max_connections, 8192) : null
       groups = try(coalescelist(v.groups, v.instance_groups,
-        [for neg in local.new_gnegs : "${local.url_prefix}/${neg.project_id}/global/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
-        [for neg in local.new_rnegs : "${local.url_prefix}/${neg.project_id}/regions/${neg.region}/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
-        [for neg in local.znegs : "${local.url_prefix}/${neg.project_id}/zones/${neg.zone}/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
+        [for neg in local.new_gnegs : "${local.url_prefix}/projects/${neg.project_id}/global/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
+        [for neg in local.new_rnegs : "${local.url_prefix}/projects/${neg.project_id}/regions/${neg.region}/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
+        [for neg in local.znegs : "${local.url_prefix}/projects/${neg.project_id}/zones/${neg.zone}/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
       ), []) # This will result in 'has no backends configured' which is easier to troubleshoot than an ugly error
-      health_checks = v.is_gnegs || v.is_psc ? null : flatten([for health_check in v.health_checks :
-        [startswith(health_check, local.url_prefix) ? health_check : "${v.hc_prefix}/${health_check}"]
+      health_checks = v.is_gnegs || v.is_psc ? null : flatten([for _ in v.health_checks :
+        [startswith(_, local.url_prefix) ? _ : startswith(_, "projects/") ? "${local.url_prefix}/${_}" : "${v.hc_prefix}/healthChecks/${_}"]
       ])
       cdn_cache_mode  = v.enable_cdn ? upper(coalesce(v.cdn.cache_mode, "CACHE_ALL_STATIC")) : null
       cdn_default_ttl = v.enable_cdn ? 3600 : null
