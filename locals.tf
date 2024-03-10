@@ -181,9 +181,9 @@ locals {
   __new_negs = [
     for i, v in local._new_negs :
     merge(v, {
-      name    = "${local.name_prefix != null ? "${local.name_prefix}-" : ""}${coalesce(v.name, "neg-${v.backend_name}-${i}")}"
-      region  = v.zone != null ? substr(v.zone, 0, length(v.zone) - 2) : coalesce(v.region, "global")
-      is_psc  = v.psc_target != null ? true : false
+      name   = "${local.name_prefix != null ? "${local.name_prefix}-" : ""}${coalesce(v.name, "neg-${v.backend_name}-${i}")}"
+      region = v.zone != null ? substr(v.zone, 0, length(v.zone) - 2) : coalesce(v.region, "global")
+      is_psc = v.psc_target != null ? true : false
     })
   ]
   new_negs = [
@@ -236,13 +236,13 @@ locals {
       is_serverless = v.cloud_run_service != null ? true : false
     })
   ]
-  existing_znegs = [ for neg in local._new_negs : 
-  {
-    project_id = neg.project_id
-    zone = neg.zone
-    name = neg.name
-    backend_name = neg.backend_name
-  } if neg.zone != null && neg.instance == null
+  existing_znegs = [for neg in local._new_negs :
+    {
+      project_id   = neg.project_id
+      zone         = neg.zone
+      name         = neg.name
+      backend_name = neg.backend_name
+    } if neg.zone != null && neg.instance == null
   ]
   _new_znegs = [
     for i, v in local.new_negs :
