@@ -73,7 +73,7 @@ locals {
     merge(v, {
       is_psc     = length([for neg in local.new_negs : neg if neg.is_psc]) > 0 ? true : false
       port       = try(coalesce(v.port, v.is_application ? (v.protocol == "HTTP" ? 80 : 443) : null), null)
-      one(toset([for ig in v.instance_groups : ig.port_name])) : null
+      port_name  = length(v.instance_groups) > 0 ? one(toset([for ig in v.instance_groups : ig.port_name])) : null
       enable_cdn = v.is_application && !v.is_regional && !v.is_internal ? local.enable_cdn : false
       type       = local.type
       hc_prefix  = "${local.url_prefix}/projects/${v.project_id}/${v.is_regional ? "regions/${v.region}" : "global"}/healthChecks"
