@@ -115,7 +115,7 @@ locals {
         [for neg in local.znegs : "${local.url_prefix}/projects/${neg.project_id}/zones/${neg.zone}/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
       ), []) # This will result in 'has no backends configured' which is easier to troubleshoot than an ugly error
       health_checks = v.is_gnegs || v.is_psc ? null : flatten([for _ in v.health_checks :
-        [startswith(_, local.url_prefix) ? _ : startswith(_, "projects/") ? "${local.url_prefix}/${_}" : "${v.hc_prefix}/healthChecks/${_}"]
+        [startswith(_, local.url_prefix) ? _ : startswith(_, "projects/") ? "${local.url_prefix}/${_}" : "${v.hc_prefix}/${_}"]
       ])
       cdn_cache_mode  = v.enable_cdn ? upper(coalesce(v.cdn.cache_mode, "CACHE_ALL_STATIC")) : null
       cdn_default_ttl = v.enable_cdn ? 3600 : null
