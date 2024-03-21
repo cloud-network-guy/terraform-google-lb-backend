@@ -119,6 +119,8 @@ variable "instance_groups" {
     project_id = optional(string)
     zone       = optional(string)
     name       = optional(string)
+    port_name = optional(string)
+    instances = optional(list(string))
   }))
   default = null
 }

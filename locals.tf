@@ -38,7 +38,6 @@ locals {
       timeout_sec             = coalesce(var.timeout, 30)
       protocol                = upper(trimspace(local.protocol))
       port                    = local.port
-      port_name               = null
       uses_iap                = local.uses_iap
       is_application          = local.is_application
       is_classic              = local.is_classic
@@ -64,6 +63,7 @@ locals {
           id         = ig.id
           name       = ig.name
           zone       = ig.zone
+                port_name               = coalesce(ig.port_name, lower("${v.protocol}-${v.port}}"))
         }
       ]
       sample_rate = v.logging ? 1.0 : 0.0
@@ -81,7 +81,8 @@ locals {
           ig.id,
           ig.zone != null && ig.name != null ? "projects/${ig.project_id}/zones/${ig.zone}/instanceGroups/${ig.name}" : null,
         ), [])
-      ],
+      ]
+      port_name = length(v.instance_groups) > 0 ? toset([for ig in v.instance_groups : ig.port_name]) : null
     })
   ]
   ____backend_services = [for i, v in local.___backend_services :
