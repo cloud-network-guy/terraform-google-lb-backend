@@ -73,6 +73,7 @@ locals {
     merge(v, {
       is_psc     = length([for neg in local.new_negs : neg if neg.is_psc]) > 0 ? true : false
       port       = try(coalesce(v.port, v.is_application ? (v.protocol == "HTTP" ? 80 : 443) : null), null)
+      one(toset([for ig in v.instance_groups : ig.port_name])) : null
       enable_cdn = v.is_application && !v.is_regional && !v.is_internal ? local.enable_cdn : false
       type       = local.type
       hc_prefix  = "${local.url_prefix}/projects/${v.project_id}/${v.is_regional ? "regions/${v.region}" : "global"}/healthChecks"
@@ -97,7 +98,7 @@ locals {
   backend_services = [for i, v in local.____backend_services :
     merge(v, {
       port                            = v.is_application ? null : coalesce(v.port, v.is_gnegs ? 443 : 80)
-      port_name                       = v.is_application && v.is_igs ? one(toset([for ig in v.instance_groups : ig.port_name])) : null
+      port_name                       = v.is_application && v.is_igs ? v.port_name : null
       protocol                        = v.is_gnegs ? "HTTPS" : v.protocol # Assume HTTPS since global NEGs go via Internet
       timeout_sec                     = v.is_rnegs ? null : v.timeout_sec
       load_balancing_scheme           = v.is_application && !local.is_classic ? "${local.type}_MANAGED" : local.type
