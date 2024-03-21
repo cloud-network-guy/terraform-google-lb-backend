@@ -82,7 +82,6 @@ locals {
           ig.zone != null && ig.name != null ? "projects/${ig.project_id}/zones/${ig.zone}/instanceGroups/${ig.name}" : null,
         ), [])
       ]
-      port_name = length(v.instance_groups) > 0 ? toset([for ig in v.instance_groups : ig.port_name]) : null
     })
   ]
   ____backend_services = [for i, v in local.___backend_services :
@@ -92,12 +91,13 @@ locals {
       is_gnegs        = length(local.new_gnegs) > 0 ? true : false
       is_rnegs        = length(local.new_rnegs) > 0 ? true : false
       is_znegs        = length(local.new_znegs) > 0 ? true : false
-      is_igs          = false
+      is_igs          = length(v.instance_groups) > 0 ? true : false
     })
   ]
   backend_services = [for i, v in local.____backend_services :
     merge(v, {
-      port                            = coalesce(v.port, v.is_gnegs ? 443 : 80)
+      port                            = v.is_application ? null : coalesce(v.port, v.is_gnegs ? 443 : 80)
+      port_name = v.is_application && length(v.instance_groups) > 0 ? one(toset([for ig in v.instance_groups : ig.port_name])) : null
       protocol                        = v.is_gnegs ? "HTTPS" : v.protocol # Assume HTTPS since global NEGs go via Internet
       timeout_sec                     = v.is_rnegs ? null : v.timeout_sec
       load_balancing_scheme           = v.is_application && !local.is_classic ? "${local.type}_MANAGED" : local.type
