@@ -102,7 +102,7 @@ locals {
       protocol                        = v.is_gnegs ? "HTTPS" : v.protocol # Assume HTTPS since global NEGs go via Internet
       timeout_sec                     = v.is_rnegs ? null : v.timeout_sec
       load_balancing_scheme           = v.is_application && !local.is_classic ? "${local.type}_MANAGED" : local.type
-      locality_lb_policy              = v.is_application && !v.is_gnegs ? upper(coalesce(var.locality_lb_policy, "ROUND_ROBIN")) : null
+      locality_lb_policy              = v.is_application && !v.is_classic && !v.is_gnegs ? upper(coalesce(var.locality_lb_policy, "ROUND_ROBIN")) : null
       security_policy                 = v.is_application ? var.security_policy : null
       network                         = v.is_application && v.is_regional && !v.is_internal ? local.network : null
       subnet                          = v.is_application && v.is_regional && !v.is_internal ? local.subnet : null
