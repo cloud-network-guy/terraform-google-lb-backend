@@ -68,6 +68,7 @@ locals {
       ]
       sample_rate = v.logging ? 1.0 : 0.0
     })
+    
   ]
   ___backend_services = [for i, v in local.__backend_services :
     merge(v, {
@@ -93,6 +94,7 @@ locals {
       is_rnegs        = length(local.new_rnegs) > 0 ? true : false
       is_znegs        = length(local.new_znegs) > 0 ? true : false
       is_igs          = length(v.instance_groups) > 0 ? true : false
+      cdn_cache_mode = v.enable_cdn ? upper(coalesce(lookup(v.cdn, "cache_mode", null), "CACHE_ALL_STATIC")) : null
     })
   ]
   backend_services = [for i, v in local.____backend_services :
@@ -119,11 +121,11 @@ locals {
       health_checks = v.is_gnegs || v.is_psc ? null : flatten([for _ in v.health_checks :
         [startswith(_, local.url_prefix) ? _ : startswith(_, "projects/") ? "${local.url_prefix}/${_}" : "${v.hc_prefix}/${_}"]
       ])
-      cdn_cache_mode  = v.enable_cdn ? upper(coalesce(v.cdn.cache_mode, "CACHE_ALL_STATIC")) : null
-      cdn_default_ttl = v.enable_cdn ? 3600 : null
-      cdn_min_ttl     = v.enable_cdn ? 60 : null
-      cdn_max_ttl     = v.enable_cdn ? 14400 : null
-      cdn_client_ttl  = v.enable_cdn ? 3600 : null
+      cdn_cache_mode  = v.enable_cdn ? v.cdn_cache_mode : null
+      cdn_default_ttl = v.enable_cdn ? (v.cdn_cache_mode == "CACHE_ALL_STATIC" ? 3600 : 0) : null
+      cdn_min_ttl     = v.enable_cdn ? (v.cdn_cache_mode == "CACHE_ALL_STATIC" ? 60 : 0) : null
+      cdn_max_ttl     = v.enable_cdn ? (v.cdn_cache_mode == "CACHE_ALL_STATIC" ? 14400 : 0) : null
+      cdn_client_ttl  = v.enable_cdn ? (v.cdn_cache_mode == "CACHE_ALL_STATIC" ? 3600 : 0) : null
       index_key       = v.is_regional ? "${v.project_id}/${v.region}/${v.name}" : "${v.project_id}/${v.name}"
     }) if v.create == true
   ]
