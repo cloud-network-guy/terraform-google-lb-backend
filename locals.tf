@@ -63,12 +63,11 @@ locals {
           id         = ig.id
           name       = ig.name
           zone       = ig.zone
-                port_name               = coalesce(ig.port_name, lower("${v.protocol}-${v.port}}"))
+          port_name  = coalesce(ig.port_name, lower("${v.protocol}-${v.port}}"))
         }
       ]
       sample_rate = v.logging ? 1.0 : 0.0
     })
-    
   ]
   ___backend_services = [for i, v in local.__backend_services :
     merge(v, {
@@ -94,7 +93,7 @@ locals {
       is_rnegs        = length(local.new_rnegs) > 0 ? true : false
       is_znegs        = length(local.new_znegs) > 0 ? true : false
       is_igs          = length(v.instance_groups) > 0 ? true : false
-      cdn_cache_mode = v.enable_cdn ? upper(coalesce(lookup(v.cdn, "cache_mode", null), "CACHE_ALL_STATIC")) : null
+      cdn_cache_mode  = v.enable_cdn ? upper(coalesce(lookup(v.cdn, "cache_mode", null), "CACHE_ALL_STATIC")) : null
     })
   ]
   backend_services = [for i, v in local.____backend_services :
@@ -265,7 +264,7 @@ locals {
   new_znegs = [
     for i, v in local.__new_znegs :
     merge(v, {
-      name       = v.instance
+      name       = coalesce(v.name, v.instance)
       ip_address = data.google_compute_instance.zneg_instances[v.index_key].network_interface[0].network_ip
       #ip_address = one([ for instance in data.google_compute_instance.instances : instance.network_interface[0].network_ip if instance.self_link == "lakdjsf" ])
     })
