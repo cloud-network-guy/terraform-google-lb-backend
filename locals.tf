@@ -83,12 +83,14 @@ locals {
           ig.zone != null && ig.name != null ? "projects/${ig.project_id}/zones/${ig.zone}/instanceGroups/${ig.name}" : null,
         ), [])
       ]
+      groups = [for group in local.groups : (startswith(group, local.url_prefix) ? group : "${local.url_prefix}/${group}")]
     })
   ]
   ____backend_services = [for i, v in local.___backend_services :
     merge(v, {
       capacity_scaler = v.is_application ? coalesce(var.capacity_scaler, 1.0) : null
       max_utilization = v.is_application ? coalesce(var.max_utilization, 0.8) : null
+      is_negs         = length([for group in v.groups : group if strcontains(group, "networkEndpointGroups")]) > 0 ? true : false
       is_gnegs        = length(local.new_gnegs) > 0 ? true : false
       is_rnegs        = length(local.new_rnegs) > 0 ? true : false
       is_znegs        = length(local.new_znegs) > 0 ? true : false
@@ -115,7 +117,7 @@ locals {
       groups = try(coalescelist(v.groups, v.instance_groups,
         [for neg in local.new_gnegs : "${local.url_prefix}/projects/${neg.project_id}/global/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
         [for neg in local.new_rnegs : "${local.url_prefix}/projects/${neg.project_id}/regions/${neg.region}/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
-        [for neg in local.znegs : "${local.url_prefix}/projects/${neg.project_id}/zones/${neg.zone}/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
+        [for neg in local.new_znegs : "${local.url_prefix}/projects/${neg.project_id}/zones/${neg.zone}/networkEndpointGroups/${neg.name}" if neg.backend_name == v.name],
       ), []) # This will result in 'has no backends configured' which is easier to troubleshoot than an ugly error
       health_checks = v.is_gnegs || v.is_psc ? null : flatten([for _ in v.health_checks :
         [startswith(_, local.url_prefix) ? _ : startswith(_, "projects/") ? "${local.url_prefix}/${_}" : "${v.hc_prefix}/${_}"]
@@ -184,7 +186,9 @@ locals {
   __new_negs = [
     for i, v in local._new_negs :
     merge(v, {
-      name   = "${local.name_prefix != null ? "${local.name_prefix}-" : ""}${coalesce(v.name, "neg-${v.backend_name}-${i}")}"
+      name = "${local.name_prefix != null ? "${local.name_prefix}-" : ""}${coalesce(v.name, "neg-${v.backend_name}-${i}")}"
+      #name   = "${local.name_prefix != null ? "${local.name_prefix}-" : ""}${v.name}"
+      #name   = coalesce(v.name, "neg-${v.backend_name}-${i}")
       region = v.zone != null ? substr(v.zone, 0, length(v.zone) - 2) : coalesce(v.region, "global")
       is_psc = v.psc_target != null ? true : false
     })
@@ -239,7 +243,7 @@ locals {
       is_serverless = v.cloud_run_service != null ? true : false
     })
   ]
-  existing_znegs = [for neg in local._new_negs :
+  existing_znegs = [for neg in local.new_negs :
     {
       project_id   = neg.project_id
       zone         = neg.zone
@@ -251,22 +255,27 @@ locals {
     for i, v in local.new_negs :
     merge(v, {
       network_endpoint_type = "GCE_VM_IP_PORT"
-      instance              = lookup(v, "instance", null)
-      default_port          = v.port
-    }) if v.zone != null
+      #name                  = coalesce(v.name, v.instance)
+      instance     = lookup(v, "instance", null)
+      default_port = v.port
+    }) if v.zone != null && v.instance != null
   ]
   __new_znegs = [
     for i, v in local._new_znegs :
     merge(v, {
-      index_key = "${v.project_id}/${v.zone}/${v.instance}"
-    }) if v.instance != null
+      index_key = "${v.project_id}/${v.zone}/${v.name}" # Index key for group
+    })
   ]
-  new_znegs = [
+  ___new_znegs = [
     for i, v in local.__new_znegs :
     merge(v, {
-      name       = coalesce(v.name, v.instance)
       ip_address = data.google_compute_instance.zneg_instances[v.index_key].network_interface[0].network_ip
-      #ip_address = one([ for instance in data.google_compute_instance.instances : instance.network_interface[0].network_ip if instance.self_link == "lakdjsf" ])
+    }) if v.ip_address == null
+  ]
+  new_znegs = [
+    for i, v in local.___new_znegs :
+    merge(v, {
+      group_index_key = v.groups_index_key
     })
   ]
   znegs = concat(local.existing_znegs, local.new_znegs)

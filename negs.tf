@@ -79,11 +79,11 @@ resource "google_compute_network_endpoint_group" "default" {
 resource "google_compute_network_endpoint" "default" {
   for_each               = { for i, v in local.new_znegs : v.index_key => v }
   project                = each.value.project_id
-  network_endpoint_group = google_compute_network_endpoint_group.default[each.value.index_key].id
+  network_endpoint_group = google_compute_network_endpoint_group.default[each.value.group_index_key].id
   zone                   = each.value.zone
   instance               = each.value.instance
   ip_address             = each.value.ip_address
-  port                   = google_compute_network_endpoint_group.default[each.value.index_key].default_port
+  port                   = google_compute_network_endpoint_group.default[each.value.group_index_key].default_port
   depends_on             = [null_resource.znegs]
 }
 
