@@ -91,7 +91,7 @@ locals {
       capacity_scaler = v.is_application ? coalesce(var.capacity_scaler, 1.0) : null
       max_utilization = v.is_application ? coalesce(var.max_utilization, 0.8) : null
       is_negs         = length([for group in v.groups : group if strcontains(group, "networkEndpointGroups")]) > 0 ? true : false
-      is_gnegs        = length(local.new_gnegs) > 0 ? true : false
+      is_gnegs        = length([for group in v.groups : group if strcontains(group, "global/networkEndpointGroups")]) > 0 ? true : false
       is_rnegs        = length(local.new_rnegs) > 0 ? true : false
       is_znegs        = length(local.new_znegs) > 0 ? true : false
       is_igs          = length(v.instance_groups) > 0 ? true : false
