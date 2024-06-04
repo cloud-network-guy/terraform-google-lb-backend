@@ -73,7 +73,15 @@ variable "session_affinity" {
   type    = string
   default = null
 }
-variable "bucket" {
+variable "bucket_name" {
+  type    = string
+  default = null
+}
+variable "create_bucket" {
+  type    = bool
+  default = null
+}
+variable "bucket_location" {
   type    = string
   default = null
 }
@@ -105,6 +113,14 @@ variable "connection_draining_timeout" {
   type    = number
   default = null
 }
+variable "bucket" {
+  type = object({
+    #create   = optional(bool)
+    name     = optional(string)
+    location = optional(string)
+  })
+  default = null
+}
 variable "iap" {
   type = object({
     application_title = optional(string)
@@ -112,37 +128,6 @@ variable "iap" {
     members           = optional(list(string))
   })
   default = null
-}
-variable "instance_groups" {
-  type = list(object({
-    id         = optional(string)
-    project_id = optional(string)
-    zone       = optional(string)
-    name       = optional(string)
-    port_name  = optional(string)
-    instances  = optional(list(string))
-  }))
-  default = null
-}
-variable "negs" {
-  type = list(object({
-    id                = optional(string)
-    project_id        = optional(string)
-    name              = optional(string)
-    type              = optional(string)
-    region            = optional(string)
-    zone              = optional(string)
-    instance          = optional(string)
-    network           = optional(string)
-    subnet            = optional(string)
-    fqdn              = optional(string)
-    ip_address        = optional(string)
-    protocol          = optional(string)
-    port              = optional(number)
-    psc_target        = optional(string)
-    cloud_run_service = optional(string) # Cloud run service name
-  }))
-  default = []
 }
 variable "cdn" {
   type = object({
