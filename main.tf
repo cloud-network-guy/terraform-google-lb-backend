@@ -30,7 +30,7 @@ locals {
   iap             = var.iap != null && local.is_application && !local.is_regional && !local.is_internal ? var.iap : null
   uses_iap        = local.iap != null && local.is_service ? true : false
   cdn             = var.cdn != null && local.is_application && !local.is_regional && !local.is_internal ? var.cdn : null
-  enable_cdn      = local.cdn  != null ? true : false
+  enable_cdn      = local.cdn != null ? true : false
   health_checks   = var.health_check != null ? [var.health_check] : coalesce(var.health_checks, [])
   is_psc          = false
   #labels                 = { for k, v in coalesce(var.labels, {}) : k => lower(replace(v, " ", "_")) }
