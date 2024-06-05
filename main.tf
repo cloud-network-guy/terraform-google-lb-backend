@@ -66,7 +66,7 @@ locals {
     merge(v, {
       hc_prefix                       = "${local.url_prefix}/projects/${local.project_id}/${local.is_regional ? "regions/${v.region}" : "global"}/healthChecks"
       groups                          = [for group in local.groups : (startswith(group, local.url_prefix) ? group : "${local.url_prefix}/${group}")]
-      port                            = local.is_application ? null : coalesce(v.port, v.is_gnegs ? 443 : 80)
+      port                            = local.is_application ? null : coalesce(v.port, local.is_gnegs ? 443 : 80)
       port_name                       = local.is_application && local.is_igs ? v.port_name : null
       protocol                        = local.is_gnegs ? "HTTPS" : v.protocol # Assume HTTPS since global NEGs go via Internet
       timeout_sec                     = local.is_rnegs ? null : v.timeout_sec
